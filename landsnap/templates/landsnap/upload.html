@@ -1,0 +1,40 @@
+{% extends "landsnap/base.html" %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'landsnap/css/styles.css' %}">
+<script src="{% static 'landsnap/js/upload.js' %}"></script>
+<img src="{% static 'landsnap/img/logo.png' %}" alt="Logo">
+<div class="upload-form-container">
+  <h2>Upload Images for Analysis</h2>
+  
+  <form class="upload-form" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    
+    <div class="form-group">
+      <label for="id_image1">First Image (Before)</label>
+      {{ form.image1 }}
+      <img id="id_image1-preview" class="image-preview" style="display:none;">
+    </div>
+    
+    <div class="form-group">
+      <label for="id_image2">Second Image (After)</label>
+      {{ form.image2 }}
+      <img id="id_image2-preview" class="image-preview" style="display:none;">
+    </div>
+    
+    <button type="submit" class="btn btn-primary">Analyze Images</button>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .image-preview {
+    max-width: 300px;
+    max-height: 200px;
+    margin-top: 1rem;
+    border: 1px solid #ddd;
+  }
+</style>
+{% endblock %}
