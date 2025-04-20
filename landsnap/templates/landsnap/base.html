@@ -1,0 +1,39 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Land Use Change Analysis Tool">
+  
+  <title>{% block title %}Land Snap Analyzer{% endblock %}</title>
+  
+  <!-- <link rel="icon" href="{% static 'landsnap/img/logo.png' %}"> -->
+  
+  <link rel="stylesheet" href="{% static 'landsnap/css/styles.css' %}">
+  
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+  <header class="app-header">
+    <div class="container header-content">
+      <h1>Land Snap Analysis</h1>
+      <img src="{% static 'landchange/img/logo.png' %}" alt="Logo" height="40">
+      <link rel="stylesheet" href="{% static 'landsnap/css/styles.css' %}">
+    </div>
+  </header>
+
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="app-footer">
+    <div class="container">
+      <p>&copy; {% now "Y" %} Land Snap Analysis Tool</p>
+    </div>
+  </footer>
+
+  <script src="{% static 'landsnap/js/upload.js' %}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

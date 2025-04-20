@@ -1,0 +1,68 @@
+{% extends "landsnap/base.html" %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'landsnap/css/styles.css' %}">
+<script src="{% static 'landsnap/js/upload.js' %}"></script>
+<img src="{% static 'landsnap/img/logo.png' %}" alt="Logo">
+<div class="processing-container">
+  <div class="loading-spinner"></div>
+  <h2>Processing Your Images</h2>
+  <p>This may take a few moments...</p>
+  <div class="progress-bar">
+    <div class="progress"></div>
+  </div>
+</div>
+
+<script>
+  // Check progress every 2 seconds
+  setInterval(function() {
+    fetch('/api/analysis-progress/')
+      .then(response => response.json())
+      .then(data => {
+        document.querySelector('.progress').style.width = `${data.progress}%`;
+        if (data.complete) {
+          window.location.href = data.redirect_url;
+        }
+      });
+  }, 2000);
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .processing-container {
+    text-align: center;
+    padding: 3rem;
+  }
+  
+  .loading-spinner {
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid var(--secondary-color);
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 2rem;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  .progress-bar {
+    width: 100%;
+    background-color: #f3f3f3;
+    border-radius: 4px;
+    margin-top: 2rem;
+  }
+  
+  .progress {
+    height: 20px;
+    background-color: var(--secondary-color);
+    border-radius: 4px;
+    width: 0%;
+    transition: width 0.3s ease;
+  }
+</style>
+{% endblock %}
