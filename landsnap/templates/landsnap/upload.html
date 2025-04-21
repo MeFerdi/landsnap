@@ -19,8 +19,133 @@
         {{ form.image2 }}
         <p class="upload-hint">{% trans '(JPEG or PNG, max 5MB)' %}</p>
       </div>
-      <button type="submit" class="btn btn-primary">{% trans 'Analyze Images' %}</button>
+      <button type="submit" class="btn btn-primary" id="analyze-btn">{% trans 'Analyze Images' %}</button>
     </form>
   </div>
 </section>
+
+<script>
+ document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('analysis-form');
+    const analyzeBtn = document.getElementById('analyze-btn');
+    const MIN_DIMENSION = 500; // Match your server-side value
+
+    form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        
+        // Clear previous errors
+        document.querySelectorAll('.alert-danger, .dimension-error').forEach(el => el.remove());
+        
+        // Get files
+        const file1 = document.getElementById('id_image1').files[0];
+        const file2 = document.getElementById('id_image2').files[0];
+        const maxSize = 5 * 1024 * 1024; // 5MB
+        const validTypes = ['image/jpeg', 'image/png'];
+
+        // Basic validation
+        if (!file1 || !file2) {
+            showError('Please select both images');
+            return;
+        }
+
+        if (file1.size > maxSize || file2.size > maxSize) {
+            showError('Each file must be smaller than 5MB');
+            return;
+        }
+
+        if (!validTypes.includes(file1.type) || !validTypes.includes(file2.type)) {
+            showError('Only JPEG and PNG images are allowed');
+            return;
+        }
+
+        // Check image dimensions client-side
+        try {
+            const [dimensions1, dimensions2] = await Promise.all([
+                getImageDimensions(file1),
+                getImageDimensions(file2)
+            ]);
+            
+            if (dimensions1.width < MIN_DIMENSION || dimensions1.height < MIN_DIMENSION) {
+                showDimensionError('id_image1', `Before image must be at least ${MIN_DIMENSION}x${MIN_DIMENSION} pixels`);
+                return;
+            }
+            
+            if (dimensions2.width < MIN_DIMENSION || dimensions2.height < MIN_DIMENSION) {
+                showDimensionError('id_image2', `After image must be at least ${MIN_DIMENSION}x${MIN_DIMENSION} pixels`);
+                return;
+            }
+            
+            // All validations passed - proceed with upload
+            uploadFiles();
+            
+        } catch (error) {
+            showError('Could not verify image dimensions. Please try different images.');
+            console.error('Dimension check failed:', error);
+        }
+    });
+
+    async function getImageDimensions(file) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => resolve({ width: img.width, height: img.height });
+            img.onerror = reject;
+            img.src = URL.createObjectURL(file);
+        });
+    }
+
+    function showDimensionError(fieldId, message) {
+        const input = document.getElementById(fieldId);
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'dimension-error text-danger small mt-1';
+        errorDiv.textContent = message;
+        input.parentNode.appendChild(errorDiv);
+    }
+
+    function showError(message) {
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'alert alert-danger mt-3';
+        errorDiv.textContent = message;
+        form.insertBefore(errorDiv, form.firstChild);
+    }
+
+    function uploadFiles() {
+        const formData = new FormData(form);
+        analyzeBtn.disabled = true;
+        analyzeBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> {% trans "Processing..." %}';
+
+        fetch("{% url 'landsnap:upload' %}", {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            },
+        })
+        .then(async response => {
+            const data = await response.json();
+            
+            if (!response.ok) {
+                if (data.errors) {
+                    for (const field in data.errors) {
+                        showDimensionError(`id_${field}`, data.errors[field]);
+                    }
+                }
+                throw new Error(data.error || `Server error: ${response.status}`);
+            }
+            
+            if (data.redirect_url) {
+                window.location.href = data.redirect_url;
+            } else {
+                throw new Error('Unexpected response from server');
+            }
+        })
+        .catch(error => {
+            console.error('Upload failed:', error);
+            showError(error.message);
+            analyzeBtn.disabled = false;
+            analyzeBtn.textContent = '{% trans "Analyze Images" %}';
+        });
+    }
+});
+</script>
 {% endblock %}
