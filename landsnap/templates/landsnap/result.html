@@ -2,63 +2,230 @@
 {% load static i18n %}
 
 {% block content %}
-<section class="section results-section">
+<section class="section result-section">
   <div class="card">
-    <h2 class="section-heading">{% trans 'Previous Analysis Results' %}</h2>
-    {% if results %}
-    <ul class="results-list">
-      {% for result in results %}
-      <li class="result-item">
-        <a href="{% url 'landsnap:analysis_result' result_id=result.upload.result_id %}" class="result-link">
-          <div class="result-card">
-            <p class="result-date">{{ result.created_at|date:"F j, Y" }}</p>
-            <p class="result-change">{{ result.change_percentage }}% {% trans 'Change' %}</p>
-            <p class="result-status {% if result.status == 'FAILED' %}status-failed{% elif result.status == 'COMPLETE' %}status-complete{% else %}status-processing{% endif %}">
-              {{ result.get_status_display }}
-            </p>
-            
-            {% if result.status == 'COMPLETE' and result.heatmap %}
-            <div class="heatmap-preview" 
-                 data-before-img="{{ result.upload.image1.url }}"
-                 data-after-img="{{ result.upload.image2.url }}"
-                 data-heatmap-img="{{ result.heatmap.url }}">
-              <div class="heatmap-container" id="heatmap-container-{{ forloop.counter }}"></div>
-            </div>
-            {% endif %}
+    <div class="result-header">
+      <h2>{% trans 'Analysis Results' %}</h2>
+      {% if result.upload.result_id %}
+      <div class="download-options">
+        <span>{% trans 'Download as:' %}</span>
+        <a href="{% url 'landsnap:download_heatmap' result_id=result.upload.result_id format='png' %}" 
+           class="btn btn-sm btn-outline-secondary">PNG</a>
+        <a href="{% url 'landsnap:download_heatmap' result_id=result.upload.result_id format='jpg' %}" 
+           class="btn btn-sm btn-outline-secondary">JPG</a>
+        <a href="{% url 'landsnap:download_heatmap' result_id=result.upload.result_id format='pdf' %}" 
+           class="btn btn-sm btn-outline-secondary">PDF</a>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="image-comparison">
+      <div class="image-container">
+        <h3>{% trans 'Before' %}</h3>
+        <div class="image-viewer">
+          <img src="{{ result.upload.image1.url }}" alt="Before image" class="zoomable-image">
+          <div class="image-controls">
+            <button class="zoom-in btn btn-sm btn-outline-primary">+</button>
+            <button class="zoom-out btn btn-sm btn-outline-primary">-</button>
+            <button class="reset-zoom btn btn-sm btn-outline-secondary">{% trans 'Reset' %}</button>
           </div>
-        </a>
-      </li>
-      {% endfor %}
-    </ul>
-    {% else %}
-    <p class="no-results">{% trans 'No analysis results yet. Start by uploading images for analysis.' %}</p>
-    {% endif %}
-  </div>
-</section>
+        </div>
+      </div>
+      
+      <div class="image-container">
+        <h3>{% trans 'After' %}</h3>
+        <div class="image-viewer">
+          <img src="{{ result.upload.image2.url }}" alt="After image" class="zoomable-image">
+          <div class="image-controls">
+            <button class="zoom-in btn btn-sm btn-outline-primary">+</button>
+            <button class="zoom-out btn btn-sm btn-outline-primary">-</button>
+            <button class="reset-zoom btn btn-sm btn-outline-secondary">{% trans 'Reset' %}</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="heatmap-container">
+      <h3>{% trans 'Change Heatmap' %}</h3>
+      <div class="image-viewer">
+        <img src="{{ result.heatmap.url }}" alt="Change heatmap" class="zoomable-image">
+        <div class="image-controls">
+          <button class="zoom-in btn btn-sm btn-outline-primary">{% trans '+' %}</button>
+          <button class="zoom-out btn btn-sm btn-outline-primary">{% trans '-' %}</button>
+          <button class="reset-zoom btn btn-sm btn-outline-secondary">{% trans 'Reset' %}</button>
+        </div>
+      </div>
+    </div>
+    <div class="analysis-table">
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>{% trans 'Metric' %}</th>
+            <th>{% trans 'Value' %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{% trans 'Change Percentage' %}</td>
+            <td>{{ result.change_percentage }}%</td>
+          </tr>
+          <tr>
+            <td>{% trans 'Change Intensity' %}</td>
+            <td>{{ change_intensity }}</td>
+          </tr>
+          <tr>
+            <td>{% trans 'Processing Time' %}</td>
+            <td>{{ result.processing_time }} seconds</td>
+          </tr>
+          <tr>
+            <td>{% trans 'Quality Rating' %}</td>
+            <td>{{ result.get_quality_rating_display }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    
+    <style>
+    .image-viewer {
+      position: relative;
+      border: 1px solid #ddd;
+      overflow: hidden;
+      margin-bottom: 1rem;
+      background-color: #f8f9fa;
+    }
+    
+    .zoomable-image {
+      display: block;
+      max-width: 100%;
+      height: auto;
+      transition: transform 0.3s ease;
+      transform-origin: 0 0;
+      cursor: grab;
+    }
+    
+    .image-controls {
+      text-align: center;
+      padding: 0.5rem;
+    }
+    
+    .image-viewer {
+      width: 100%;
+      height: 400px;
+    }
+    
+    .zoomable-image {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    </style>
 
-<style>
-.heatmap-preview {
-  margin-top: 1rem;
-  height: 100px;
-  overflow: hidden;
-  position: relative;
-}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('.zoomable-image').forEach(img => {
+    let currentScale = 1;
+    let isDragging = false;
+    let startPos = { x: 0, y: 0 };
+    let translate = { x: 0, y: 0 };
+    const scaleStep = 0.2;
+    const container = img.parentElement;
 
-.heatmap-container {
-  width: 100%;
-  height: 100%;
-  background-size: cover;
-  background-position: center;
-}
+    const controls = container.querySelector('.image-controls');
+    const zoomInBtn = controls.querySelector('.zoom-in');
+    const zoomOutBtn = controls.querySelector('.zoom-out');
+    const resetBtn = controls.querySelector('.reset-zoom');
 
-.heatmap-container canvas {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-</style>
-{% endblock %}
+    // Initialize transform
+    updateTransform();
 
-{% block extra_js %}
-<script src="{% static 'landsnap/js/heatmap.js' %}"></script>
+    // Zoom In
+    zoomInBtn.addEventListener('click', () => {
+      currentScale += scaleStep;
+      updateTransform();
+    });
+
+    // Zoom Out
+    zoomOutBtn.addEventListener('click', () => {
+      if (currentScale > scaleStep) {
+        currentScale -= scaleStep;
+        updateTransform();
+      }
+    });
+
+    // Reset Zoom
+    resetBtn.addEventListener('click', () => {
+      currentScale = 1;
+      translate = { x: 0, y: 0 };
+      updateTransform();
+    });
+
+    // Mouse Dragging
+    img.addEventListener('mousedown', (e) => {
+      if (currentScale > 1) {
+        isDragging = true;
+        startPos = { x: e.clientX - translate.x, y: e.clientY - translate.y };
+        img.style.cursor = 'grabbing';
+        e.preventDefault(); // Prevent default browser behavior
+      }
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+      translate.x = e.clientX - startPos.x;
+      translate.y = e.clientY - startPos.y;
+      updateTransform();
+    });
+
+    document.addEventListener('mouseup', () => {
+      isDragging = false;
+      img.style.cursor = currentScale > 1 ? 'grab' : 'default';
+    });
+
+    // Touch Dragging
+    img.addEventListener('touchstart', (e) => {
+      if (currentScale > 1) {
+        isDragging = true;
+        startPos = {
+          x: e.touches[0].clientX - translate.x,
+          y: e.touches[0].clientY - translate.y,
+        };
+        e.preventDefault(); // Prevent default browser behavior
+      }
+    }, { passive: false });
+
+    document.addEventListener('touchmove', (e) => {
+      if (!isDragging) return;
+      e.preventDefault();
+      translate.x = e.touches[0].clientX - startPos.x;
+      translate.y = e.touches[0].clientY - startPos.y;
+      updateTransform();
+    }, { passive: false });
+
+    document.addEventListener('touchend', () => {
+      isDragging = false;
+    });
+
+    // Update Transform
+    function updateTransform() {
+      // Constrain translation to keep the image within the container
+      const maxTranslateX = Math.max(0, (img.naturalWidth * currentScale - container.clientWidth) / 2);
+      const maxTranslateY = Math.max(0, (img.naturalHeight * currentScale - container.clientHeight) / 2);
+
+      translate.x = Math.max(-maxTranslateX, Math.min(maxTranslateX, translate.x));
+      translate.y = Math.max(-maxTranslateY, Math.min(maxTranslateY, translate.y));
+
+      img.style.transform = `translate(${translate.x}px, ${translate.y}px) scale(${currentScale})`;
+
+      // Disable buttons at limits
+      zoomOutBtn.disabled = currentScale <= 1;
+      resetBtn.disabled = currentScale === 1 && translate.x === 0 && translate.y === 0;
+    }
+
+    // Recalculate transform on window resize
+    window.addEventListener('resize', () => {
+      updateTransform();
+    });
+  });
+});
+  </script>
 {% endblock %}
