@@ -1,31 +1,19 @@
 {% extends "landsnap/base.html" %}
+{% load static %}
 
 {% block content %}
 <link rel="stylesheet" href="{% static 'landsnap/css/styles.css' %}">
-<script src="{% static 'landsnap/js/upload.js' %}"></script>
-<img src="{% static 'landsnap/img/logo.png' %}" alt="Logo">
+<script src="{% static 'landsnap/js/upload.js' %}" defer></script>
+<img src="{% static 'landsnap/img/logo.png' %}" alt="Logo" class="logo">
 <div class="processing-container">
   <div class="loading-spinner"></div>
   <h2>Processing Your Images</h2>
   <p>This may take a few moments...</p>
   <div class="progress-bar">
-    <div class="progress"></div>
+    <div class="progress" id="progress-bar"></div>
   </div>
 </div>
-
-<script>
-  // Check progress every 2 seconds
-  setInterval(function() {
-    fetch('/api/analysis-progress/')
-      .then(response => response.json())
-      .then(data => {
-        document.querySelector('.progress').style.width = `${data.progress}%`;
-        if (data.complete) {
-          window.location.href = data.redirect_url;
-        }
-      });
-  }, 2000);
-</script>
+<script src="{% static 'landsnap/js/main.js' %}" defer></script>
 {% endblock %}
 
 {% block extra_css %}
@@ -33,6 +21,14 @@
   .processing-container {
     text-align: center;
     padding: 3rem;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  
+  .logo {
+    display: block;
+    margin: 0 auto 2rem;
+    max-width: 200px;
   }
   
   .loading-spinner {
@@ -54,7 +50,8 @@
     width: 100%;
     background-color: #f3f3f3;
     border-radius: 4px;
-    margin-top: 2rem;
+    margin: 2rem auto 0;
+    overflow: hidden;
   }
   
   .progress {
@@ -63,6 +60,15 @@
     border-radius: 4px;
     width: 0%;
     transition: width 0.3s ease;
+  }
+  
+  h2 {
+    margin-bottom: 1rem;
+    color: var(--primary-color);
+  }
+  
+  p {
+    color: #666;
   }
 </style>
 {% endblock %}
