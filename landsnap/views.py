@@ -114,7 +114,7 @@ class AnalysisProgressView(View):
         return progress_map.get(status, 0)
 class ResultsListView(ListView):
     model = AnalysisResult
-    template_name = 'landsnap/results_list.html'
+    template_name = 'landsnap/result.html'
     context_object_name = 'results'
     ordering = ['-created_at']
 
