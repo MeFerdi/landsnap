@@ -103,19 +103,18 @@ class AnalysisResult(models.Model):
         verbose_name=_('Heatmap Image'),
         help_text=_('Generated change detection heatmap')
     )
-    change_percentage = models.FloatField(
-        validators=[MinValueValidator(0), MaxValueValidator(100)],
-        verbose_name=_('Change Percentage'),
-        help_text=_('Percentage of area changed (0-100)')
-    )
+    change_percentage = models.FloatField(null=True, blank=True)  
+    # change_percentage = models.FloatField(
+    #     validators=[MinValueValidator(0), MaxValueValidator(100)],
+    #     verbose_name=_('Change Percentage'),
+    #     help_text=_('Percentage of area changed (0-100)')
+    # )
     created_at = models.DateTimeField(
         auto_now_add=True,
         verbose_name=_('Created At')
     )
-    processing_time = models.FloatField(
-        verbose_name=_('Processing Time (seconds)'),
-        help_text=_('Time taken to process the analysis')
-    )
+    processing_time = models.FloatField(null=True, blank=True)
+     
     quality_rating = models.CharField(
         max_length=10,
         choices=QUALITY_CHOICES,

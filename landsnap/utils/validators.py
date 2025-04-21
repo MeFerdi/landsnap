@@ -18,25 +18,27 @@ def validate_image_size(image):
 def validate_image_dimensions(image):
     """Validate that image meets minimum dimension requirements"""
     try:
+        image.seek(0)
         with Image.open(image) as img:
             width, height = img.size
             if width < MIN_DIMENSION or height < MIN_DIMENSION:
                 raise ValidationError(
-                    _('Image dimensions must be at least %(min_dim)s pixels in both width and height.'),
-                    params={'min_dim': MIN_DIMENSION},
+                    _('Image too small (%(width)sx%(height)s). Minimum dimensions: %(min_dim)sx%(min_dim)s pixels.'),
+                    params={
+                        'width': width,
+                        'height': height,
+                        'min_dim': MIN_DIMENSION
+                    },
                     code='image_too_small'
                 )
-            
-            # Additional validations could include:
-            # - Aspect ratio checks
-            # - Color mode validation
+        image.seek(0)
     except Exception as e:
+        image.seek(0) 
         raise ValidationError(
-            _('Unable to validate image dimensions: %(error)s'),
+            _('Invalid image: %(error)s'),
             params={'error': str(e)},
             code='image_invalid'
         )
-
 def validate_image_extension(image):
     """Validate file extension (though accept attribute in form should handle this)"""
     ext = os.path.splitext(image.name)[1].lower()
