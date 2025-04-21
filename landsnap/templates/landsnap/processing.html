@@ -71,4 +71,42 @@
     color: #666;
   }
 </style>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+      const resultId = '{{ result_id }}';
+      const progressBar = document.getElementById('progress-bar');
+      
+      function checkProgress() {
+          fetch(`/progress/${resultId}/`)  // Update with your actual URL pattern
+              .then(response => response.json())
+              .then(data => {
+                  if (data.error) {
+                      throw new Error(data.error);
+                  }
+                  
+                  // Update progress bar
+                  if (data.progress) {
+                      progressBar.style.width = `${data.progress}%`;
+                  }
+                  
+                  // Handle completion or failure
+                  if (data.status === 'COMPLETE' && data.redirect_url) {
+                      window.location.href = data.redirect_url;
+                  } else if (data.status === 'FAILED') {
+                      throw new Error(data.error || 'Processing failed');
+                  } else {
+                      // Check again after delay
+                      setTimeout(checkProgress, 2000);
+                  }
+              })
+              .catch(error => {
+                  console.error('Error:', error);
+                  alert(`Error: ${error.message}`);
+              });
+      }
+      
+      // Start checking progress
+      checkProgress();
+  });
+  </script>
 {% endblock %}
