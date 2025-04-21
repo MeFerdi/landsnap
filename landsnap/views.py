@@ -141,13 +141,26 @@ class ProcessingView(TemplateView):
         context['result_id'] = self.kwargs.get('result_id')
         return context
     
-class AnalysisProgressView(View):
-    logger = logging.getLogger(__name__)
+from django.views import View
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from django.urls import reverse
+import logging
 
-    def get(self, result_id):
+logger = logging.getLogger(__name__)
+
+class AnalysisProgressView(View):
+    def get(self, request, result_id):
+        """
+        Endpoint to check analysis progress
+        GET /progress/<uuid:result_id>/
+        Returns JSON with status and progress
+        """
         try:
+            
             upload = get_object_or_404(ImageUpload, result_id=result_id)
-            result = upload.analysisresult
+            
+            result = upload.analysis_result  
             
             response_data = {
                 'status': result.status,
@@ -155,18 +168,36 @@ class AnalysisProgressView(View):
             }
             
             if result.status == 'COMPLETE':
-                response_data['redirect_url'] = reverse(
-                    'landsnap:analysis_result',
-                    kwargs={'result_id': str(result_id)}
-                )
+                response_data.update({
+                    'redirect_url': reverse(
+                        'landsnap:analysis_result',
+                        kwargs={'result_id': str(result_id)}
+                    ),
+                    'change_percentage': result.change_percentage,
+                    'processing_time': result.processing_time
+                })
             elif result.status == 'FAILED':
                 response_data['error'] = result.error_message
             
             return JsonResponse(response_data)
             
         except Exception as e:
-            self.logger.error(f"Error in AnalysisProgressView: {str(e)}")
-            return JsonResponse({'error': 'An unexpected error occurred.'}, status=500)
+            logger.error(f"Progress check failed for {result_id}: {str(e)}")
+            return JsonResponse({
+                'error': str(e) if settings.DEBUG else 'Analysis status unavailable',
+                'status': 'ERROR'
+            }, status=500)
+
+    def calculate_progress(self, status):
+        """Calculate progress percentage based on analysis status"""
+        PROGRESS_MAP = {
+            'PENDING': 10,
+            'PROCESSING': 50,
+            'COMPLETE': 100,
+            'FAILED': 100,
+            'ERROR': 0
+        }
+        return PROGRESS_MAP.get(status, 0)
 
     def calculate_progress(self, status):
         """Simple progress estimation based on status"""
