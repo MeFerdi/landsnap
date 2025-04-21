@@ -1,20 +1,25 @@
-{% extends "base.html" %}
+{% extends "landsnap/base.html" %}
+{% load static i18n %}
 
 {% block content %}
-<h2>Previous Analysis Results</h2>
-{% if results %}
-<ul class="results-list">
-  {% for result in results %}
-  <li class="result-item">
-    <a href="{% url 'landsnap:analysis_result' result_id=result.upload.result_id %}">
-      <span class="result-date">{{ result.created_at|date:"F j, Y" }}</span>
-      <span class="result-change">{{ result.change_percentage }}% change</span>
-      <span class="result-status {{ result.status|lower }}">{{ result.get_status_display }}</span>
-    </a>
-  </li>
-  {% endfor %}
-</ul>
-{% else %}
-<p>No analysis results yet.</p>
-{% endif %}
+<section class="section results-section">
+  <h2 class="section-heading">{% trans 'Previous Analysis Results' %}</h2>
+  {% if results %}
+  <ul class="results-list">
+    {% for result in results %}
+    <li class="result-item">
+      <a href="{% url 'landsnap:analysis_result' result_id=result.upload.result_id %}" class="result-link">
+        <div class="result-card">
+          <p class="result-date">{{ result.created_at|date:"F j, Y" }}</p>
+          <p class="result-change">{{ result.change_percentage }}% {% trans 'Change' %}</p>
+          <p class="result-status">{{ result.get_status_display }}</p>
+        </div>
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="no-results">{% trans 'No analysis results yet. Start by uploading images for analysis.' %}</p>
+  {% endif %}
+</section>
 {% endblock %}

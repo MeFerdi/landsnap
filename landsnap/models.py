@@ -81,6 +81,16 @@ class AnalysisResult(models.Model):
         ('MEDIUM', _('Medium Confidence')),
         ('HIGH', _('High Confidence')),
     ]
+    status = models.CharField(
+        max_length=20,
+        choices=[
+            ('PENDING', 'Pending'),
+            ('PROCESSING', 'Processing'),
+            ('COMPLETE', 'Complete'),
+            ('FAILED', 'Failed'),
+        ],
+        default='PENDING',
+    )
     
     upload = models.OneToOneField(
         ImageUpload,

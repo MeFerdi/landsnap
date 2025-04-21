@@ -5,126 +5,34 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="{% trans 'Analyze land changes over time with Land Snap Analysis Tool' %}">
-  
   <title>{% block title %}{% trans 'Land Snap Analyzer' %}{% endblock %}</title>
-  <meta name="title" content="Land Snap Analyzer">
-  <meta name="description" content="{% trans 'Compare and analyze land changes through satellite or aerial imagery' %}">
-
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="{{ request.build_absolute_uri }}">
-  <meta property="og:title" content="Land Snap Analyzer">
-  <meta property="og:description" content="{% trans 'Compare and analyze land changes through satellite or aerial imagery' %}">
-  <meta property="og:image" content="{% static 'landsnap/img/og-image.jpg' %}">
-
-  <meta property="twitter:card" content="summary_large_image">
-  <meta property="twitter:url" content="{{ request.build_absolute_uri }}">
-  <meta property="twitter:title" content="Land Snap Analyzer">
-  <meta property="twitter:description" content="{% trans 'Compare and analyze land changes through satellite or aerial imagery' %}">
-  <meta property="twitter:image" content="{% static 'landsnap/img/og-image.jpg' %}">
-
-  <link rel="preload" href="{% static 'landsnap/css/styles.css' %}" as="style">
-  <link rel="preload" href="{% static 'landsnap/js/main.js' %}" as="script">
-  <link rel="preload" href="{% static 'landsnap/img/logo.svg' %}" as="image" type="image/svg+xml">
-
-  <link rel="icon" href="{% static 'landsnap/img/favicon.ico' %}">
-  <link rel="icon" href="{% static 'landsnap/img/icon.svg' %}" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="{% static 'landsnap/img/apple-touch-icon.png' %}">
-  <link rel="manifest" href="{% static 'landsnap/manifest.webmanifest' %}">
-
   <link rel="stylesheet" href="{% static 'landsnap/css/styles.css' %}">
-  
-  <script>
-    const storedTheme = localStorage.getItem('theme') || 
-        (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-    document.documentElement.setAttribute('data-theme', storedTheme);
-  </script>
-  
-  {% block extra_head %}{% endblock %}
-  {% block extra_css %}{% endblock %}
 </head>
-<body class="{% block body_class %}{% endblock %}">
- 
-  <a class="skip-link sr-only" href="#main-content">{% trans 'Skip to main content' %}</a>
-  
-
+<body>
   <header class="app-header">
     <div class="container">
-      <div class="header-grid">
-        <div class="branding">
-            <a href="{% url 'landsnap:upload' %}" class="logo-link">
-            <img src="{% static 'landsnap/img/logo.svg' %}" 
-                 alt="{% trans 'Land Snap Logo' %}" 
-                 width="160"
-                 height="40"
-                 class="logo"
-               >
-          </a>
-          <h1 class="sr-only">Land Snap Analysis</h1>
-        </div>
-        
-        <nav class="main-nav" aria-label="{% trans 'Primary navigation' %}">
-            <ul>
-              <li><a href="{% url 'landsnap:upload' %}">{% trans 'Analyze' %}</a></li>
-              <li><a href="{% url 'landsnap:results' %}">{% trans 'Results' %}</a></li>
-              <li><a href="{% url 'landsnap:about' %}">{% trans 'About' %}</a></li>
-            </ul>
-          </nav>
-        
-        <div class="header-actions">
-          <button class="theme-toggle" aria-label="{% trans 'Toggle dark mode' %}">
-            <span class="theme-icon light" aria-hidden="true">☀️</span>
-            <span class="theme-icon dark" aria-hidden="true">🌙</span>
-          </button>
-        </div>
-        
-        {% block header_extra %}{% endblock %}
+      <div class="branding">
+        <a href="{% url 'landsnap:upload' %}" class="logo-link">
+          <img src="{% static 'landsnap/img/logo.jpg' %}" alt="{% trans 'Land Snap Logo' %}" class="logo">
+          <span class="logo-text">LandSnap</span>
+        </a>
       </div>
+      <nav class="nav-links">
+        <a href="{% url 'landsnap:upload' %}" class="nav-link">{% trans 'Upload' %}</a>
+        <a href="{% url 'landsnap:results' %}" class="nav-link">{% trans 'Results' %}</a>
+        <a href="{% url 'landsnap:about' %}" class="nav-link">{% trans 'About' %}</a>
+      </nav>
     </div>
   </header>
 
-  <main id="main-content" class="container">
-    {% if messages %}
-    <div class="messages-container">
-      {% for message in messages %}
-      <div class="alert alert-{{ message.tags }}" role="alert">
-        {{ message }}
-        <button class="alert-close" aria-label="{% trans 'Close message' %}">&times;</button>
-      </div>
-      {% endfor %}
-    </div>
-    {% endif %}
-    
+  <main class="container">
     {% block content %}{% endblock %}
   </main>
 
   <footer class="app-footer">
     <div class="container">
-      <div class="footer-grid">
-        <div class="footer-info">
-          <p>&copy; {% now "Y" %} {% trans 'Land Snap Analysis Tool' %}. {% trans 'All rights reserved.' %}</p>
-        </div>
-        
-        
-        <div class="footer-social">
-          <a href="#" aria-label="Twitter"><span aria-hidden="true">𝕏</span></a>
-          <a href="#" aria-label="GitHub"><span aria-hidden="true">🐙</span></a>
-        </div>
-      </div>
+      <p>&copy; {% now "Y" %} {% trans 'Land Snap Analysis Tool' %}. {% trans 'All rights reserved.' %}</p>
     </div>
   </footer>
-
-
-  <svg style="display:none;">
-    <symbol id="icon-external" viewBox="0 0 24 24">
-      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6m4-3h6v6m0-6-7 7"/>
-    </symbol>
-  </svg>
-  
-  <script src="{% static 'landsnap/js/main.js' %}" defer></script>
-  
-  {% block extra_js %}{% endblock %}
-  
-  {% if debug %}
-  {% endif %}
 </body>
 </html>
