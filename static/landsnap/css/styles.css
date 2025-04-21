@@ -250,25 +250,17 @@ body {
   color: var(--primary-color);
 }
 
-.result-status {
-  font-size: 0.9rem;
-  font-weight: bold;
-  text-transform: uppercase;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-}
-
-.result-status.complete {
+.status-complete {
   background-color: var(--success-color);
   color: white;
 }
 
-.result-status.pending {
+.status-processing {
   background-color: var(--secondary-color);
   color: white;
 }
 
-.result-status.failed {
+.status-failed {
   background-color: var(--danger-color);
   color: white;
 }
@@ -284,6 +276,15 @@ body {
 .no-results p {
   margin-bottom: 1rem;
   color: #666;
+}
+.dimension-error {
+  color: #dc3545;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.alert-danger {
+  margin-bottom: 1rem;
 }
 /* About Section */
 .about-section {
