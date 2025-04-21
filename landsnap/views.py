@@ -146,6 +146,11 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
 import logging
+from django.http import HttpResponse
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from io import BytesIO
+from PIL import Image
 
 logger = logging.getLogger(__name__)
 
@@ -258,3 +263,48 @@ class AnalysisResultView(DetailView):
         elif seconds < 15:
             return 'Moderate'
         return 'Slow'
+class DownloadHeatmapView(View):
+    def get(self, result_id, format):
+        result = get_object_or_404(AnalysisResult, upload__result_id=result_id)
+        
+        if not result.heatmap:
+            return HttpResponse("No heatmap available", status=404)
+
+        if format == 'pdf':
+            return self.generate_pdf(result)
+        else:
+            return self.generate_image(result, format)
+
+    def generate_pdf(self, result):
+        buffer = BytesIO()
+        p = canvas.Canvas(buffer, pagesize=letter)
+        
+        # Add heatmap image
+        img_path = result.heatmap.path
+        img = Image.open(img_path)
+        img_width, img_height = img.size
+        aspect = img_height / float(img_width)
+        width = 500
+        height = width * aspect
+        
+        p.drawImage(img_path, 50, 700 - height, width=width, height=height)
+        
+        # Add metadata
+        p.setFont("Helvetica", 12)
+        p.drawString(50, 650, f"Change Percentage: {result.change_percentage}%")
+        p.drawString(50, 630, f"Processing Time: {result.processing_time} seconds")
+        
+        p.showPage()
+        p.save()
+        
+        buffer.seek(0)
+        response = HttpResponse(buffer, content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="heatmap_{result.upload.result_id}.pdf"'
+        return response
+
+    def generate_image(self, result, format):
+        img_path = result.heatmap.path
+        with open(img_path, 'rb') as f:
+            response = HttpResponse(f.read(), content_type=f'image/{format}')
+            response['Content-Disposition'] = f'attachment; filename="heatmap_{result.upload.result_id}.{format}"'
+            return response
