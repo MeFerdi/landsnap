@@ -1,7 +1,12 @@
 from django.urls import path
 from .views import DownloadHeatmapView, ProcessingView, UploadView, AnalysisResultView, AnalysisProgressView, AboutView, ResultsListView
-
+from django.conf.urls import handler400, handler403, handler404, handler500
 app_name = 'landsnap'
+
+handler400 = 'yourapp.views.error_handler'
+handler403 = 'yourapp.views.error_handler'
+handler404 = 'yourapp.views.error_handler'
+handler500 = 'yourapp.views.error_handler'
 
 urlpatterns = [
     path('', UploadView.as_view(), name='upload'),
