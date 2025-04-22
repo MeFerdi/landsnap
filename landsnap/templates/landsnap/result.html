@@ -135,16 +135,14 @@
     const zoomOutBtn = controls.querySelector('.zoom-out');
     const resetBtn = controls.querySelector('.reset-zoom');
 
-    // Initialize transform
+  
     updateTransform();
 
-    // Zoom In
     zoomInBtn.addEventListener('click', () => {
       currentScale += scaleStep;
       updateTransform();
     });
 
-    // Zoom Out
     zoomOutBtn.addEventListener('click', () => {
       if (currentScale > scaleStep) {
         currentScale -= scaleStep;
@@ -158,14 +156,12 @@
       translate = { x: 0, y: 0 };
       updateTransform();
     });
-
-    // Mouse Dragging
     img.addEventListener('mousedown', (e) => {
       if (currentScale > 1) {
         isDragging = true;
         startPos = { x: e.clientX - translate.x, y: e.clientY - translate.y };
         img.style.cursor = 'grabbing';
-        e.preventDefault(); // Prevent default browser behavior
+        e.preventDefault();
       }
     });
 
@@ -189,7 +185,7 @@
           x: e.touches[0].clientX - translate.x,
           y: e.touches[0].clientY - translate.y,
         };
-        e.preventDefault(); // Prevent default browser behavior
+        e.preventDefault();
       }
     }, { passive: false });
 
@@ -205,7 +201,6 @@
       isDragging = false;
     });
 
-    // Update Transform
     function updateTransform() {
       // Constrain translation to keep the image within the container
       const maxTranslateX = Math.max(0, (img.naturalWidth * currentScale - container.clientWidth) / 2);
@@ -216,12 +211,10 @@
 
       img.style.transform = `translate(${translate.x}px, ${translate.y}px) scale(${currentScale})`;
 
-      // Disable buttons at limits
       zoomOutBtn.disabled = currentScale <= 1;
       resetBtn.disabled = currentScale === 1 && translate.x === 0 && translate.y === 0;
     }
 
-    // Recalculate transform on window resize
     window.addEventListener('resize', () => {
       updateTransform();
     });
