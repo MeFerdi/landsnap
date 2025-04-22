@@ -71,6 +71,25 @@ landsnap/
 7. **Access the Application**:
    Open your browser and navigate to `http://127.0.0.1:8000`.
 
+## Running with Docker
+
+You can containerize and run the application using Docker for consistent deployment across environments.
+
+### Prerequisites
+
+- Install [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/).
+
+### Steps to Run
+
+1. **Build the Docker Image**:
+```bash
+   docker build -t landsnap .
+```
+2. **Run the Docker *Container**
+```bash
+docker run -p 8000:8000 landsnap
+```
+
 ## Technologies
 **Backend**
 1. Django - Python Framework
