@@ -1,0 +1,61 @@
+.error-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 2rem;
+    text-align: center;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+}
+
+.error-icon {
+    font-size: 5rem;
+    margin-bottom: 1.5rem;
+    color: #dc3545;
+}
+
+.error-icon i {
+    vertical-align: middle;
+}
+
+.error-message {
+    margin: 1.5rem 0;
+    font-size: 1.1rem;
+    line-height: 1.6;
+}
+
+.technical-details {
+    margin-top: 2rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 4px;
+    text-align: left;
+    font-family: monospace;
+    font-size: 0.9rem;
+    overflow-x: auto;
+}
+
+.error-actions {
+    margin-top: 2rem;
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+/* Specific error colors */
+.error-400 .error-icon { color: #fd7e14; }
+.error-403 .error-icon { color: #ffc107; }
+.error-404 .error-icon { color: #6f42c1; }
+.error-500 .error-icon { color: #dc3545; }
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .error-container {
+        margin: 1rem;
+        padding: 1.5rem;
+    }
+    
+    .error-actions {
+        flex-direction: column;
+    }
+}
