@@ -12,8 +12,13 @@ from django.db import transaction
 from .forms import UploadForm
 from .models import ImageUpload, AnalysisResult
 from .utils.image_utils import generate_heatmap, calculate_changes
-from .utils.validators import validate_image_dimensions, validate_image_extension, validate_image_size
 import logging
+from django.views import View
+from django.http import HttpResponse
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from io import BytesIO
+from PIL import Image
 
 logger = logging.getLogger(__name__)
 
@@ -140,17 +145,6 @@ class ProcessingView(TemplateView):
         context = super().get_context_data(**kwargs)
         context['result_id'] = self.kwargs.get('result_id')
         return context
-    
-from django.views import View
-from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
-from django.urls import reverse
-import logging
-from django.http import HttpResponse
-from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
-from io import BytesIO
-from PIL import Image
 
 logger = logging.getLogger(__name__)
 
@@ -203,16 +197,6 @@ class AnalysisProgressView(View):
             'ERROR': 0
         }
         return PROGRESS_MAP.get(status, 0)
-
-    def calculate_progress(self, status):
-        """Simple progress estimation based on status"""
-        progress_map = {
-            'PENDING': 10,
-            'PROCESSING': 50,
-            'COMPLETE': 100,
-            'FAILED': 100
-        }
-        return progress_map.get(status, 0)
 class ResultsListView(ListView):
     model = AnalysisResult
     template_name = 'landsnap/result.html'
@@ -228,7 +212,6 @@ class AboutView(TemplateView):
 class AnalysisResultView(DetailView):
     template_name = 'landsnap/result.html'
     context_object_name = 'result'
-
     def get_object(self, queryset=None):
         result_id = self.kwargs.get('result_id')
         return get_object_or_404(
@@ -263,8 +246,9 @@ class AnalysisResultView(DetailView):
         elif seconds < 15:
             return 'Moderate'
         return 'Slow'
+
 class DownloadHeatmapView(View):
-    def get(self, result_id, format):
+    def get(self, request, result_id, format):
         result = get_object_or_404(AnalysisResult, upload__result_id=result_id)
         
         if not result.heatmap:
