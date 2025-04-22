@@ -71,6 +71,17 @@ landsnap/
 7. **Access the Application**:
    Open your browser and navigate to `http://127.0.0.1:8000`.
 
+## Technologies
+**Backend**
+1. Django - Python Framework
+2. SQLite - Lightweight Database
+
+**Frontend**
+1. HTML & CSS
+2. JavaScript
+
+**
+
 ## Usage
 
 1. Navigate to the **Upload** page to upload two images of the same location.
