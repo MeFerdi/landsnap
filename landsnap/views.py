@@ -19,6 +19,8 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from io import BytesIO
 from PIL import Image
+from django.shortcuts import render
+from django.template import RequestContext
 
 logger = logging.getLogger(__name__)
 
@@ -292,3 +294,38 @@ class DownloadHeatmapView(View):
             response = HttpResponse(f.read(), content_type=f'image/{format}')
             response['Content-Disposition'] = f'attachment; filename="heatmap_{result.upload.result_id}.{format}"'
             return response
+
+def error_handler(request, exception=None, status_code=400):
+    error_mapping = {
+        400: {
+            'title': 'Bad Request',
+            'message': 'The server cannot process your request due to invalid syntax.'
+        },
+        403: {
+            'title': 'Permission Denied',
+            'message': 'You don\'t have permission to access this resource.'
+        },
+        404: {
+            'title': 'Page Not Found',
+            'message': 'The page you requested could not be found.'
+        },
+        500: {
+            'title': 'Server Error',
+            'message': 'The server encountered an internal error.'
+        }
+    }
+    
+    error_info = error_mapping.get(status_code, {
+        'title': 'Error',
+        'message': 'An unexpected error occurred.'
+    })
+    
+    context = {
+        'status_code': status_code,
+        'error_title': error_info['title'],
+        'error_message': error_info['message'],
+        'exception': str(exception) if exception and settings.DEBUG else None,
+        'debug': settings.DEBUG
+    }
+    
+    return render(request, 'error.html', context, status=status_code)
